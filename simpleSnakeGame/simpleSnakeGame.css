@@ -1,0 +1,58 @@
+body {
+    background: #4d4d4d;
+    font-family: sans-serif;
+}
+
+h1{
+    color: #ffffff;
+    margin: 30px auto;
+    text-align: center;
+}
+
+canvas {
+    border: 1px solid #ffffff;
+    display: block;
+    margin: 50px auto 10px;
+}
+
+#restart{
+    background: #4054b5;
+    box-shadow: 0 3px 0 0 #293674;
+    color: #fff;
+    outline: none;
+    cursor: pointer;
+    text-shadow: 0 1px #293674;
+    display: block;
+    font-size: 16px;
+    line-height: 40px;
+
+    border: none;
+    border-radius: 5px;
+    margin: 30px auto;
+    padding: 5px 20px;
+    width: 160px;
+}
+
+#restart:hover{
+    background: #324292;
+}
+
+.snakeSpeed {
+    margin: 30px auto;
+    text-align: center;
+}
+
+.snakeSpeed label {
+    padding: 5px;
+    color: #fff;
+}
+
+.snakeSpeed input{
+    position: relative;
+}
+
+.scoreBoard {
+    color: #ffffff;
+    text-align: right;
+    padding-right: 20px;
+}

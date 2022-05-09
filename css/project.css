@@ -1,0 +1,34 @@
+.project{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.feature-contents{
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 90%;
+    max-width: 1300px;
+}
+
+.feature-list{
+    padding-top: 10px;
+}
+
+.feature-list li{
+    padding: 5px;
+}
+
+.feature-list h4{
+    padding-bottom: 5px;
+}
+
+.feature-contents a{
+    margin-top: 30px;
+    text-decoration: none;
+    color: #2a50b0;
+}
+
+.feature-contents a:hover{
+    color: #5781eb;
+}

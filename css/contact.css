@@ -1,0 +1,41 @@
+.contents{
+    padding-top: 30px;
+}
+
+.contact-form{
+    background-color: #f6f9ff;
+    padding: 20px;
+    margin: 30px;
+    border: 1px dotted black;
+    border-radius: 10px;
+}
+
+.form-group label{
+    display: block;
+    padding-top: 10px;
+    padding-bottom: 5px;
+}
+
+.form-group input[type="text"], input[type="email"], textarea{
+    padding: 8px;
+    width: 90%;
+}
+
+.form-group label{
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.button{
+    margin-top: 5px;
+    font-size: 15px;
+    padding: 10px;
+    background-color: #dde7ff;
+    border: 1px solid #2a50b0;
+    border-radius: 3px;
+}
+
+.button:hover{
+    background-color: #2a50b0;
+    border-color: #dde7ff;
+    color: #dde7ff;
+}

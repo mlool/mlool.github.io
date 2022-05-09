@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <link rel="stylesheet" href="css/general.css">
-<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/contact.css">
+
 <html>
     <head>
-        <title>Martin</title>
+        <title>Contact Me</title>
     </head>
 
     <body>
@@ -14,32 +15,39 @@
             </header>
     
             <nav class="navigation">
-                <a href="index.html" class="current-page-head">Home</a>
+                <a href="index.html">Home</a>
                 <a href="education.html">Education and Skill</a>
                 <a href="personalproject.html">Personal Projects</a>
                 <a href="workexperience.html">Work Experience</a>
                 <a href="research.html">Research</a>
-                <a href="contact.html">Contact Me</a>
+                <a href="contact.html" class="current-page-head">Contact Me</a>
             </nav>
         </div>
 
-
         <div class="contents">
+            <h3 class="banner"> Contact Me </h3>
 
-            <div class="introduction">
-                <h3 class="banner">About Me</h3>
-                <div class="content">
-                    <p>
-                        I am a sophomore student currently studying Computer Science and Statistics at the University of British Columbia. I enjoy combining 
-                        knowledge from my academic background with self taught tools to produce small projects on my free time. As a student, my main
-                        focus is still toward studying and understanding theortical concepts, working toward a honours degree which would involve 
-                        research and production of a thesis. I am also an artist in heart, doodling while bored. In fact, I created all the images in this 
-                        website.
-                    </p>
+            <form class="contact-form" action="https://formsubmit.co/m1115756947@gmail.com" method="POST">
+                <div class="form-group">
+                    <label> Name: </label>
+                    <input type="text" name="name" placeholder="Full Name" required>
                 </div>
-            </div>
 
+                <div class="form-group">
+                    <label> Email: </label>
+                    <input type="email" name="email" placeholder="Email Address" required>
+                </div>
+
+                <div class="form-group">
+                    <label> Message: </label>
+                    <textarea name="message" cols="30" rows="10" placeholder="enter message here" required></textarea>
+                </div>
+
+                <button class="button" type="submit">Send</button>
+           </form>
         </div>
+
+
 
 
 
@@ -58,6 +66,5 @@
             </ul>
             <p>Designed by Martin Lou | &copy 2022</p>
         </div>
-
     </body>
 </html>

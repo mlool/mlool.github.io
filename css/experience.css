@@ -1,0 +1,21 @@
+.experience{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.experience-description{
+    padding-left: 30px;
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 90%;
+    max-width: 1300px;
+}
+
+.experience h4{
+    padding: 5px;
+}
+
+.experience-description li{
+    padding: 5px;
+}

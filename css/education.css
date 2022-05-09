@@ -1,0 +1,60 @@
+.education-body {
+    padding: 20px;
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 90%;
+    max-width: 1300px;
+}
+
+.education-body .major{
+    padding: 10px 0px;
+}
+
+.education-body .major h3{
+    float: left;
+    width: 70%;
+}
+
+.education-body .major p{
+    float: right;
+    text-align: center;
+    width: 30%;
+}
+
+.education-body .grade{
+    padding: 10px 0px;
+}
+
+.skills-list-contents{
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 90%;
+    max-width: 1300px;
+    display: flex;
+    justify-content: center;
+}
+
+.skills-list-contents .language-list{
+    width: 50%;
+}
+
+.skills-list-contents  .tools-list{
+    width: 50%;
+}
+
+.certification-contents{
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 90%;
+    max-width: 1300px;
+    padding-left: 50px;
+    display: flex;
+    justify-content: center;
+}
+
+.contents{
+    padding-top: 30px;
+}

@@ -1,0 +1,18 @@
+.contents{
+    padding-top: 30px;
+}
+
+.introduction .content{
+    border: 2px dotted #2a50b0;
+    border-radius: 10px;
+    padding: 30px;
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 90%;
+    max-width: 1300px;
+}
+
+.introduction .content p{
+    line-height: 25px;
+}
