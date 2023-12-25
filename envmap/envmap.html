@@ -1,0 +1,425 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="#">
+    <title>CPSC 314 Assignment 5 Sept 2023</title>
+    <style>
+      body { margin: 0; } canvas {width: 100%;
+      height: 100% }
+    </style>
+  </head>
+  <body>
+    <div id="canvas"></div>
+<!--    <script src="js/three.js"></script> -->
+    <script src="js/three.min.js"></script>
+    <script src="js/SourceLoader.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/KeyboardState.js"></script> <!-- By Jerome Etienne: http://jetienne.com/ -->
+    <script src="js/OBJLoader.js"></script>   
+
+<script id="floorVertShader" type="x-shader/x-vertex">
+uniform vec2 uvScale;
+varying vec2 vUv;
+varying vec3 vcsNormal;
+varying vec3 ocsPosition;
+varying vec3 vcsPosition;
+void main()
+{       
+  vUv = uv;
+  ocsPosition = position;
+  vec4 vcsP = modelViewMatrix * vec4(ocsPosition,1.0);
+  vcsPosition = vcsP.xyz;
+  gl_Position = projectionMatrix * vcsP;   // pass on point in CCS
+  vcsNormal = normalMatrix * normal;       // normalMatrix is the transpose-inv of the rotation matrix
+}
+</script>
+
+<script id="myVertShader" type="x-shader/x-vertex">
+uniform vec2 uvScale;
+varying vec2 vUv;
+varying vec3 vcsNormal;
+varying vec3 ocsPosition;
+varying vec3 vcsPosition;
+void main()
+{       
+  vUv = uvScale * uv;
+  ocsPosition = position;
+  vec4 vcsP = modelViewMatrix * vec4(ocsPosition,1.0);
+  vcsPosition = vcsP.xyz;
+  gl_Position = projectionMatrix * vcsP;   // pass on point in CCS
+  vcsNormal = normalMatrix * normal;       // normalMatrix is the transpose-inv of the rotation matrix
+}
+</script>
+
+<script id="skyBoxVertShader" type="x-shader/x-vertex">
+varying vec2 vUv;
+void main()
+{       
+  vec4 vcsP = modelViewMatrix * vec4(position,1.0);
+  gl_Position = projectionMatrix * vcsP;   // pass on point in CCS
+  vUv = uv;
+}
+</script>
+
+<script id="holeyFragShader" type="x-shader/x-fragment">
+uniform vec3 vcsLightPosition;
+uniform vec3 myColor;
+varying vec3 vcsNormal;
+varying vec3 vcsPosition;
+varying vec3 ocsPosition;
+
+void main( void ) {
+  float scalingConstant = 5.0;
+
+  vec3 L = normalize(vcsLightPosition - vcsPosition);
+  vec3 N = normalize(vcsNormal);
+  float i = dot(N, L);
+
+  vec3 color = vec3(0,1,1);
+  gl_FragColor = vec4(i * color,1.0);
+
+  float x = ocsPosition.x * scalingConstant;
+  float y = ocsPosition.y * scalingConstant;
+  float z = ocsPosition.z * scalingConstant;
+
+  float dx = x - floor(x + 0.5);
+  float dy = y - floor(y + 0.5);
+  float dz = z - floor(z + 0.5);
+  float r2 = dx*dx + dy*dy + dz*dz;
+
+  if (r2 < 0.1) {
+    discard;
+  }
+}
+</script>
+
+<script id="toonVertexShader" type="x-shader/x-vertex">
+varying vec3 vcsNormal;
+varying vec3 vcsPosition;
+void main()
+{       
+  vec4 vcsP = modelViewMatrix * vec4(position,1.0);
+  vcsPosition = vcsP.xyz;
+  gl_Position = projectionMatrix * vcsP;   // pass on point in CCS
+  vcsNormal = normalMatrix * normal;       // normalMatrix is the transpose-inv of the rotation matrix
+}
+</script>
+
+<script id="toonFragmentShader" type="x-shader/x-fragment">
+varying vec3 vcsNormal;
+varying vec3 vcsPosition;
+uniform vec3 vcsLightPosition;
+uniform vec3 toonColor;
+
+void main( void ) {
+  //gl_FragColor = vec4(0.2,0.7,0.2,1.0);   // default is yellow
+  
+  vec3 L = normalize(vcsLightPosition - vcsPosition);
+  vec3 N = normalize(vcsNormal);
+  float i = dot(N, L);
+
+  i = floor(i * 4.0) / 4.0;
+
+  gl_FragColor = vec4(i * toonColor, 1.0);
+}
+</script>
+
+
+
+
+<script id="envmapFragShader" type="x-shader/x-fragment">
+  
+uniform sampler2D uPosxTexture;
+uniform sampler2D uPosyTexture;
+uniform sampler2D uPoszTexture;
+uniform sampler2D uNegxTexture;
+uniform sampler2D uNegyTexture;
+uniform sampler2D uNegzTexture;
+uniform vec3 myColor;
+uniform mat4 matrixWorld;
+uniform vec3 vcsLightPosition;
+varying vec3 vcsNormal;
+varying vec3 ocsPosition;
+varying vec3 vcsPosition;
+
+void main( void ) {
+  vec3 I = normalize(vcsPosition);
+  vec3 N = normalize(vcsNormal);
+  vec3 R = reflect(I, N);
+  
+  vec4 newVec = matrixWorld * vec4(R, 0.0);
+
+  if (newVec.y >= abs(newVec.x) && newVec.y >= abs(newVec.z)) {
+    float u = (-newVec.x / newVec.y + 1.0)/2.0;
+    float v = (-newVec.z / newVec.y + 1.0)/2.0;
+
+    vec3 textureColor = texture2D(uPosyTexture, vec2(u, v)).xyz;
+    gl_FragColor = vec4(textureColor,1.0);
+  } else {
+    gl_FragColor = vec4(N,1.0);
+  }
+
+  if (-newVec.y >= abs(newVec.x) && -newVec.y >= abs(newVec.z)) {
+    float u = (-newVec.x / newVec.y + 1.0)/2.0;
+    float v = (newVec.z / newVec.y + 1.0)/2.0;
+
+    vec3 textureColor = texture2D(uNegyTexture, vec2(u, v)).xyz;
+    gl_FragColor = vec4(textureColor,1.0);
+  }
+
+  if (newVec.x >= abs(newVec.y) && newVec.x >= abs(newVec.z)) {
+    float u = (newVec.z / newVec.x + 1.0)/2.0;
+    float v = (newVec.y / newVec.x + 1.0)/2.0;
+
+    vec3 textureColor = texture2D(uPosxTexture, vec2(u, v)).xyz;
+    gl_FragColor = vec4(textureColor,1.0);
+  }
+
+  if (-newVec.x >= abs(newVec.y) && -newVec.x >= abs(newVec.z)) {
+    float u = (newVec.z / newVec.x + 1.0)/2.0;
+    float v = (-newVec.y / newVec.x + 1.0)/2.0;
+
+    vec3 textureColor = texture2D(uNegxTexture, vec2(u, v)).xyz;
+    gl_FragColor = vec4(textureColor,1.0);
+  }
+
+  if (newVec.z >= abs(newVec.y) && newVec.z >= abs(newVec.x)) {
+    float u = (-newVec.x / newVec.z + 1.0)/2.0;
+    float v = (newVec.y / newVec.z + 1.0)/2.0;
+
+    vec3 textureColor = texture2D(uPoszTexture, vec2(u, v)).xyz;
+    gl_FragColor = vec4(textureColor,1.0);
+  }
+
+  if (-newVec.z >= abs(newVec.y) && -newVec.z >= abs(newVec.x)) {
+    float u = (-newVec.x / newVec.z + 1.0)/2.0;
+    float v = (-newVec.y / newVec.z + 1.0)/2.0;
+
+    vec3 textureColor = texture2D(uNegzTexture, vec2(u, v)).xyz;
+    gl_FragColor = vec4(textureColor,1.0);
+  }
+
+  //gl_FragColor = vec4(newVec.xyz, 1.0);
+}
+</script>
+
+<script id="floorFragShader" type="x-shader/x-fragment">
+uniform vec3 vcsLightPosition;
+uniform vec3 myColor;
+varying vec3 vcsPosition;
+varying vec3 ocsPosition;
+uniform sampler2D normalMap;
+uniform sampler2D textureMap;
+varying vec2 vUv;
+
+void main( void ) {
+
+  vec3 color = texture2D(textureMap, vUv).xyz;
+  vec3 normalTex = texture2D(normalMap, vUv).xyz * 2.0 - 1.0;
+  vec3 N = vec3(normalTex.x, normalTex.z, - normalTex.y);
+
+  vec3 L = normalize(vcsLightPosition - vcsPosition);
+  float i = dot(N, L);
+
+  gl_FragColor = vec4(i * color,1.0);
+}
+</script>
+
+
+<script id="pnoiseFragShader" type="x-shader/x-fragment">
+float screenWidth = 2.0;
+float PI = 3.1416;
+
+// perlin noise code from: 
+//   https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
+
+float rand(vec2 c){
+	return fract(sin(dot(c.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+float noise(vec2 p, float freq ){
+	float unit = screenWidth/freq;
+	vec2 ij = floor(p/unit);
+	vec2 xy = mod(p,unit)/unit;
+	//xy = 3.*xy*xy-2.*xy*xy*xy;
+	xy = .5*(1.-cos(PI*xy));
+	float a = rand((ij+vec2(0.,0.)));
+	float b = rand((ij+vec2(1.,0.)));
+	float c = rand((ij+vec2(0.,1.)));
+	float d = rand((ij+vec2(1.,1.)));
+	float x1 = mix(a, b, xy.x);
+	float x2 = mix(c, d, xy.x);
+	return mix(x1, x2, xy.y);
+}
+
+float pNoise(vec2 p, int res){
+	float persistance = .5;
+	float n = 0.;
+	float normK = 0.;
+	float f = 4.;
+	float amp = 1.;
+	int iCount = 0;
+	for (int i = 0; i<50; i++){
+		n+=amp*noise(p, f);
+		f*=2.;
+		normK+=amp;
+		amp*=persistance;
+		if (iCount == res) break;
+		iCount++;
+	}
+	float nf = n/normK;
+	return nf*nf*nf*nf;
+}
+
+varying vec3 ocsPosition;
+varying vec3 vcsPosition;
+void main( void ) {
+  int levels = 5;
+  float i=pNoise(ocsPosition.xy,levels);
+  // When chsnging from vcs to ocs, we notice that the noise on the square to the right of the "mirror"
+  // stops moving as we rotate the scene.
+  float j=floor(i+0.9);
+  gl_FragColor = vec4(j,j,0.3,1.0);
+  // gl_FragColor = vec4(i,i,i,1.0);
+  // We notice as we increment the levels the edges of the noise on the pattern becomes more "rugged" (less smooth)
+}
+</script>
+
+<script id="puddleFragShader" type="x-shader/x-fragment">
+  float screenWidth = 2.0;
+  float PI = 3.1416;
+  
+  // perlin noise code from: 
+  //   https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
+  
+  float rand(vec2 c){
+    return fract(sin(dot(c.xy ,vec2(12.9898,78.233))) * 43758.5453);
+  }
+  
+  float noise(vec2 p, float freq ){
+    float unit = screenWidth/freq;
+    vec2 ij = floor(p/unit);
+    vec2 xy = mod(p,unit)/unit;
+    //xy = 3.*xy*xy-2.*xy*xy*xy;
+    xy = .5*(1.-cos(PI*xy));
+    float a = rand((ij+vec2(0.,0.)));
+    float b = rand((ij+vec2(1.,0.)));
+    float c = rand((ij+vec2(0.,1.)));
+    float d = rand((ij+vec2(1.,1.)));
+    float x1 = mix(a, b, xy.x);
+    float x2 = mix(c, d, xy.x);
+    return mix(x1, x2, xy.y);
+  }
+  
+  float pNoise(vec2 p, int res){
+    float persistance = .5;
+    float n = 0.;
+    float normK = 0.;
+    float f = 3.;
+    float amp = 1.;
+    int iCount = 0;
+    for (int i = 0; i<50; i++){
+      n+=amp*noise(p, f);
+      f*=2.;
+      normK+=amp;
+      amp*=persistance;
+      if (iCount == res) break;
+      iCount++;
+    }
+    float nf = n/normK;
+    return nf*nf*nf*nf;
+  }
+  
+  uniform sampler2D uPosxTexture;
+  uniform sampler2D uPosyTexture;
+  uniform sampler2D uPoszTexture;
+  uniform sampler2D uNegxTexture;
+  uniform sampler2D uNegyTexture;
+  uniform sampler2D uNegzTexture;
+  uniform vec3 myColor;
+  uniform mat4 matrixWorld;
+  uniform vec3 vcsLightPosition;
+  varying vec3 vcsNormal;
+  varying vec3 ocsPosition;
+  varying vec3 vcsPosition;
+  uniform sampler2D normalMap;
+  uniform sampler2D textureMap;
+  varying vec2 vUv;
+  uniform float time;
+  
+  void main( void ) {
+    int levels = 5;
+    float i=pNoise(ocsPosition.xy,levels);
+    float j=floor(i+0.9);
+    if (j == 0.0) {
+      vec3 color = texture2D(textureMap, vUv).xyz;
+      vec3 normalTex = texture2D(normalMap, vUv).xyz * 2.0 - 1.0;
+      vec3 N = vec3(normalTex.x, normalTex.z, - normalTex.y);
+      vec3 TimeBasedLightPosition = vec3(sin(time / 1000.0) * 50.0, 5.0, 13.0);
+
+      vec3 L = normalize(TimeBasedLightPosition - vcsPosition);
+      float i = dot(N, L);
+
+      gl_FragColor = vec4(i * color,1.0);
+    } else {
+      
+      vec3 I = normalize(vcsPosition);
+      vec3 N = normalize(vcsNormal);
+      vec3 R = reflect(I, N);
+      vec4 newVec = matrixWorld * vec4(R, 0.0);
+
+      if (newVec.y >= abs(newVec.x) && newVec.y >= abs(newVec.z)) {
+        float u = (-newVec.x / newVec.y + 1.0)/2.0;
+        float v = (-newVec.z / newVec.y + 1.0)/2.0;
+
+        vec3 textureColor = texture2D(uPosyTexture, vec2(u, v)).xyz;
+        gl_FragColor = vec4(textureColor,1.0);
+      }
+
+      if (-newVec.y >= abs(newVec.x) && -newVec.y >= abs(newVec.z)) {
+        float u = (-newVec.x / newVec.y + 1.0)/2.0;
+        float v = (newVec.z / newVec.y + 1.0)/2.0;
+
+        vec3 textureColor = texture2D(uNegyTexture, vec2(u, v)).xyz;
+        gl_FragColor = vec4(textureColor,1.0);
+      }
+
+      if (newVec.x >= abs(newVec.y) && newVec.x >= abs(newVec.z)) {
+        float u = (newVec.z / newVec.x + 1.0)/2.0;
+        float v = (newVec.y / newVec.x + 1.0)/2.0;
+
+        vec3 textureColor = texture2D(uPosxTexture, vec2(u, v)).xyz;
+        gl_FragColor = vec4(textureColor,1.0);
+      }
+
+      if (-newVec.x >= abs(newVec.y) && -newVec.x >= abs(newVec.z)) {
+        float u = (newVec.z / newVec.x + 1.0)/2.0;
+        float v = (-newVec.y / newVec.x + 1.0)/2.0;
+
+        vec3 textureColor = texture2D(uNegxTexture, vec2(u, v)).xyz;
+        gl_FragColor = vec4(textureColor,1.0);
+      }
+
+      if (newVec.z >= abs(newVec.y) && newVec.z >= abs(newVec.x)) {
+        float u = (-newVec.x / newVec.z + 1.0)/2.0;
+        float v = (newVec.y / newVec.z + 1.0)/2.0;
+
+        vec3 textureColor = texture2D(uPoszTexture, vec2(u, v)).xyz;
+        gl_FragColor = vec4(textureColor,1.0);
+      }
+
+      if (-newVec.z >= abs(newVec.y) && -newVec.z >= abs(newVec.x)) {
+        float u = (-newVec.x / newVec.z + 1.0)/2.0;
+        float v = (-newVec.y / newVec.z + 1.0)/2.0;
+
+        vec3 textureColor = texture2D(uNegzTexture, vec2(u, v)).xyz;
+        gl_FragColor = vec4(textureColor,1.0);
+      }
+    }
+  }
+  </script>
+
+<script src="a5.js"></script>
+</body>
+</html>
+
